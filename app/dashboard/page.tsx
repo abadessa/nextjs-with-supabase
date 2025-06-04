@@ -177,26 +177,35 @@ export default function Dashboard() {
 
   // Função para salvar a nova passagem de plantão
   const handleSaveHandover = (content: string) => {
-    // Registrar no log de auditoria
-    logAuditEvent({
-      action: "update_handover",
-      user: loggedUser,
-      data: {
-        timestamp: new Date().toISOString(),
-        contentLength: content.length,
-      },
-    })
+    try {
+      // Registrar no log de auditoria
+      logAuditEvent({
+        action: "update_handover",
+        user: loggedUser,
+        data: {
+          timestamp: new Date().toISOString(),
+          contentLength: content.length,
+        },
+      })
 
-    // Aqui você processaria o conteúdo e atualizaria os dados dos leitos
-    // Por exemplo, parsing do texto para extrair informações dos pacientes
+      // Aqui você processaria o conteúdo e atualizaria os dados dos leitos
+      // Por exemplo, parsing do texto para extrair informações dos pacientes
 
-    toast({
-      title: "Passagem de plantão atualizada",
-      description: "Os dados foram processados e salvos com sucesso.",
-    })
+      toast({
+        title: "Passagem de plantão atualizada",
+        description: "Os dados foram processados e salvos com sucesso.",
+      })
 
-    // Simular atualização dos dados
-    handleRefresh()
+      // Simular atualização dos dados
+      handleRefresh()
+    } catch (error) {
+      console.error("Erro ao salvar passagem de plantão:", error)
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao processar os dados. Tente novamente.",
+        variant: "destructive",
+      })
+    }
   }
 
   // Dados reais dos leitos da UTI
@@ -927,7 +936,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mb-6">
+          <div className="flex flex-wrap items-center gap-2 mb-6">
             <div className="flex items-center gap-1">
               <Button variant="outline" size="sm" className="gap-2" onClick={handleRefresh} disabled={isRefreshing}>
                 {isRefreshing ? (
@@ -945,10 +954,10 @@ export default function Dashboard() {
               <Button
                 variant="default"
                 size="sm"
-                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                className="gap-2 bg-green-600 hover:bg-green-700 text-white font-medium"
                 onClick={() => setShowHandoverUpdateDialog(true)}
               >
-                <RefreshCw className="h-4 w-4" />
+                <FileText className="h-4 w-4" />
                 Atualizar Plantão
               </Button>
             </div>

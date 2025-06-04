@@ -211,6 +211,17 @@ Atualizado em: ${new Date().toLocaleString("pt-BR")}`
       return
     }
 
+    // Adicionar verificação de tamanho do arquivo
+    if (file.size > 10 * 1024 * 1024) {
+      // 10MB
+      toast({
+        title: "Arquivo muito grande",
+        description: "Por favor, selecione um arquivo com menos de 10MB.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setFileName(file.name)
     setUploadStatus("uploading")
     setUploadProgress(0)
@@ -285,7 +296,7 @@ Atualizado em: ${new Date().toLocaleString("pt-BR")}`
         if (!open) resetDialog()
       }}
     >
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col w-[95vw] md:w-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <RefreshCw className="h-5 w-5 text-blue-600" />
@@ -358,9 +369,12 @@ Atualizado em: ${new Date().toLocaleString("pt-BR")}`
               </div>
 
               {uploadStatus === "processing" && (
-                <div className="flex items-center justify-center py-4">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-                  <span className="ml-3 text-sm text-slate-600">Extraindo dados da passagem de plantão...</span>
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="h-10 w-10 animate-spin rounded-full border-3 border-blue-600 border-t-transparent mx-auto mb-4" />
+                    <span className="text-sm text-slate-600 block">Extraindo dados da passagem de plantão...</span>
+                    <span className="text-xs text-slate-500 block mt-2">Isso pode levar alguns segundos</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -378,7 +392,7 @@ Atualizado em: ${new Date().toLocaleString("pt-BR")}`
                 </div>
               </div>
 
-              <div className="flex-1 flex flex-col space-y-2">
+              <div className="flex-1 flex flex-col space-y-2 overflow-hidden">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-slate-700">Conteúdo da Passagem de Plantão</label>
                   <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -390,7 +404,7 @@ Atualizado em: ${new Date().toLocaleString("pt-BR")}`
                 <Textarea
                   value={editedText}
                   onChange={(e) => setEditedText(e.target.value)}
-                  className="flex-1 min-h-[400px] font-mono text-sm resize-none"
+                  className="flex-1 min-h-[300px] md:min-h-[400px] font-mono text-sm resize-none overflow-auto"
                   placeholder="O conteúdo extraído do PDF aparecerá aqui..."
                 />
 
