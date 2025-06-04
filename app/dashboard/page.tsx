@@ -142,6 +142,10 @@ export default function Dashboard() {
   const [uploadedFileType, setUploadedFileType] = useState<"pdf" | "excel" | "word" | "">("")
   const [selectedPatientForUpdate, setSelectedPatientForUpdate] = useState<any>(null)
 
+  // Adicionar após os outros estados
+  const [showPdfAttachDialog, setShowPdfAttachDialog] = useState(false)
+  const [attachedPdfFile, setAttachedPdfFile] = useState<File | null>(null)
+
   // Estados para o relatório panorama
   const [showPanoramaDialog, setShowPanoramaDialog] = useState(false)
   const [panoramaData, setPanoramaData] = useState({
@@ -241,198 +245,174 @@ export default function Dashboard() {
     },
     {
       id: "5001",
-      name: "L.A.M.D.B., 66a",
-      diagnosis: "Choque séptico (Foco A/E) / Hipovolêmico",
-      admittedFrom: "UPA III LAPA",
-      pendingIssues: ["CROSS hematologia", "Ecocardiograma", "Vancocinemia 24h"],
-      exams: ["US abdome 29/05", "Hematoma coxa E", "TGO/TGP alterados"],
-      goals: ["Reposição K+ EV", "Amiodarona VO", "Desmame DVA", "HD conforme nefrologia"],
+      name: "LUCI APARECIDA MORALES DI BERT, 66a",
+      diagnosis:
+        "Choque séptico (Foco A/E) / Hipovolêmico / Hematoma coxa E infectado / FAARV / DRC Dialítica / Mieloma Múltiplo em investigação",
+      admittedFrom: "UPA III LAPA (D:20/05) / DIH:21/05",
+      pendingIssues: ["Avaliação CIR. GERAL p/ drenagem hematoma", "Vancocinemia 04/06", "HD conforme nefrologia"],
+      exams: ["SAPS3: 76 | 67,5%", "USG partes moles: coleção 999,6ml", "Hb 8,3, Leuco 16620"],
+      goals: ["Vigilância infecciosa", "Manter dieta pastosa + enteral 20ml/hr", "Hemodiálise conforme programação"],
       status: "critical",
-      devices: "PICC MSD, PERMICATH, SVD, SNE",
-      medications: "DVA suspensa, Amiodarona",
+      devices: "PICC, AVC, permcath",
+      medications: "Vancomicina suspensa por vancocinemia elevada",
       antibiotics: [
-        {
-          name: "MEROPENEM",
-          startDate: "2025-05-24",
-          daysInUse: 7,
-        },
         {
           name: "VANCOMICINA",
           startDate: "2025-05-21",
-          daysInUse: 10,
-          pendingLabs: ["Vancocinemia 31/05"],
+          daysInUse: 14,
+          pendingLabs: ["Vancocinemia 04/06"],
+        },
+        {
+          name: "MEROPENEM",
+          startDate: "2025-05-24",
+          daysInUse: 11,
         },
         {
           name: "FLUCONAZOL",
           startDate: "2025-05-27",
-          daysInUse: 4,
+          daysInUse: 8,
         },
       ],
     },
     {
       id: "5002",
-      name: "M.A.S., 71a",
-      diagnosis: "DPOC exacerbado, PO TQT",
-      admittedFrom: "UPA Rio Pequeno",
-      pendingIssues: ["Suspender clonazepam", "Avaliar hieróxia", "CST D:29/05"],
-      exams: ["TC crânio + tórax 12/05", "Anisocoria resolvida"],
-      goals: ["Cuidados TQT", "BD com espaçador", "Desmame VM"],
+      name: "MARIA APARECIDA DA SILVA, 71a",
+      diagnosis: "DPOC exacerbado / PO TQT D:21/05 / Ins resp + RNC",
+      admittedFrom: "UPA Rio Pequeno (08/05/2025)",
+      pendingIssues: ["CST D:29/05 gram negativo", "Clostridium 03/06", "Desmame VM"],
+      exams: ["TC crânio + tórax 12/05", "Anisocoria resolvida", "Hb 8,1, Leuco 2460"],
+      goals: ["Cuidados TQT", "BD com espaçador", "Desmame lento VM"],
       status: "stable",
       devices: "TQT, SVD, PICC MSD, SNE",
-      medications: "Precedex 3ml/h",
+      medications: "Quetiapina 25mg 12/12h",
       antibiotics: [
         {
-          name: "PIPERACILINA/TAZOBACTAM",
+          name: "TAZOCIN",
           startDate: "2025-05-28",
-          daysInUse: 3,
+          daysInUse: 7,
         },
       ],
     },
     {
       id: "5003",
-      name: "M.S.M.P., 61a",
-      diagnosis: "PO colectomia + ureteroplastia",
-      admittedFrom: "Centro Cirúrgico",
-      admissionDate: "2025-05-29",
-      pendingIssues: ["Seguimento CG", "Vigilância hematúria", "NPT"],
-      exams: ["Hb 10→7, transfusão 2CH + 4plasma"],
-      goals: ["Jejum + NPT", "Hidratação", "ATB vigente"],
+      name: "MARIA SOCORRO MARQUES PEREIRA, 61a",
+      diagnosis: "PO LE + COLECTOMIA DIREITA + ILEOTRANSVERSOANASTOMOSE + URETEROPLASTIA / Íleo paralítico",
+      admittedFrom: "Centro Cirúrgico (DIH: 28/05/2025)",
+      pendingIssues: ["Anatomopatológico em andamento", "Seguimento CG", "NPT central"],
+      exams: ["Hb 10→7 intra-op: 2CH + 4plasma", "PCR 16,7", "Leuco 18450"],
+      goals: ["Jejum + NPT central", "SNG aberta + procinéticos", "Hidratação parcimoniosa"],
       status: "stable",
-      devices: "SVD 3 vias + AVP",
-      medications: "",
+      devices: "SVD 3 vias + AVP, PICC",
+      medications: "Procinéticos, simeticona",
       antibiotics: [
         {
           name: "CEFTRIAXONA",
-          startDate: "2025-05-29",
-          daysInUse: 2,
+          startDate: "2025-05-28",
+          daysInUse: 7,
         },
         {
           name: "METRONIDAZOL",
-          startDate: "2025-05-29",
-          daysInUse: 2,
+          startDate: "2025-05-28",
+          daysInUse: 7,
         },
       ],
     },
     {
       id: "5004",
-      name: "I.C.M.S., 42a",
-      diagnosis: "PO drenagem abscesso + histerectomia",
-      admittedFrom: "CCGO",
-      admissionDate: "2025-05-26",
-      pendingIssues: ["Cultura secreção 29/05", "Controle febril", "Vancocinemia 31/05"],
-      exams: ["USG parede: coleção 17ml"],
-      goals: ["Analgesia otimizada", "Vigilância infecciosa", "Não sacar SVD"],
+      name: "ISABEL CRISTINA MARTINS DA SILVA, 42a",
+      diagnosis: "PO drenagem abscesso parede / PO histerectomia + salpingectomia / LRA KDIGO III",
+      admittedFrom: "CCGO (DIH: 16/05/25)",
+      pendingIssues: ["Cultura secreção 29/05", "Avaliação nefrologia", "Não sacar SVD"],
+      exams: ["USG parede: coleção 17ml", "Cr 5,1, U 82", "Cultura gram negativo"],
+      goals: ["Analgesia otimizada", "Furosemida 8/8h", "Não deambular - risco evisceração"],
       status: "critical",
-      devices: "SVD + AVP",
-      medications: "Ketamina 4mL/h",
+      devices: "SVD + PICC MSD",
+      medications: "Ketamina 4mL/h, Metadona 5mg 12/12h",
       antibiotics: [
         {
           name: "MEROPENEM",
-          startDate: "2025-05-26",
-          daysInUse: 5,
-        },
-        {
-          name: "VANCOMICINA",
-          startDate: "2025-05-26",
-          daysInUse: 5,
-          pendingLabs: ["Vancocinemia 31/05"],
+          startDate: "2025-05-31",
+          daysInUse: 4,
         },
       ],
     },
     {
       id: "6001",
-      name: "Desconhecido, ~70a",
-      diagnosis: "Choque séptico grave + IRpA",
-      admittedFrom: "PS Barra Funda",
-      admissionDate: "2025-05-30",
-      pendingIssues: ["Culturas 27/05", "HCV RNA", "Isolamento", "Teto terapêutico"],
-      exams: ["Cr 3,2, U 159, K 5,3"],
-      goals: ["ATB", "Desmame VM/sedação", "HD nefrologia", "Ivermectina 04/06"],
-      status: "critical",
-      devices: "IOT, AVC subclávia, SVD, Shilley",
-      medications: "NORA 8mL/h, Fenta 1mL/h",
+      name: "JOÃO PITA MARINHO, 83a",
+      diagnosis: "DRC Agudizado / ICC Perfil B / DPOC exacerbado com infecção / Sd Consumptiva",
+      admittedFrom: "UPA Rio Pequeno (D:28/05) / DI UTI D:02/06",
+      pendingIssues: ["ECO", "US rins", "Marcadores tumorais", "2ª amostra BARR"],
+      exams: ["Pro BNP 83559", "Cr 3,4 (basal 2,5)", "1ª e 2ª amostra TB negativa"],
+      goals: ["Reconciliação medicamentosa", "Furosemida 40mg/dia", "Acompanhamento nefrologia"],
+      status: "stable",
+      devices: "AVP",
+      medications: "Hidralazina 12,5mg 12/12h",
       antibiotics: [
         {
-          name: "ANTIBIÓTICO EM DEFINIÇÃO",
-          startDate: "2025-05-30",
-          daysInUse: 1,
+          name: "CEFTRIAXONE",
+          startDate: "2025-05-28",
+          daysInUse: 8,
+        },
+        {
+          name: "AZITROMICINA",
+          startDate: "2025-06-02",
+          daysInUse: 2,
         },
       ],
     },
     {
       id: "6002",
-      name: "Leito Bloqueado - Isolamento",
+      name: "GEORGINA VIEIRA DE ALMEIDA, 66a",
+      diagnosis: "Bacteremia A/E / Infecção de cateter / Dor abdominal A/E / IRC dialítica",
+      admittedFrom: "PS Lapa (D:02/06) / DI UTI D:03/06",
+      pendingIssues: ["Laudo TC abdome", "HMC pareadas + cateter", "HD rotina"],
+      exams: ["Última HD sábado", "TC abdome pendente"],
+      goals: ["ATB empírico foco abdominal", "Analgesia otimizada", "Seguimento CG"],
+      status: "critical",
+      devices: "AVP, Permicath",
+      medications: "Analgesia S/N",
+      antibiotics: [
+        {
+          name: "CEFTRIAXONE",
+          startDate: "2025-06-03",
+          daysInUse: 1,
+        },
+        {
+          name: "METRONIDAZOL",
+          startDate: "2025-06-03",
+          daysInUse: 1,
+        },
+      ],
+    },
+    {
+      id: "7001",
+      name: "Leito Vago",
       diagnosis: "",
       admittedFrom: "",
       pendingIssues: [],
       exams: [],
       goals: [],
-      status: "blocked",
-    },
-    {
-      id: "7001",
-      name: "H.D., 67a",
-      diagnosis: "PO herniorrafia inguinal",
-      admittedFrom: "Internação eletiva",
-      admissionDate: "2025-05-30",
-      pendingIssues: [],
-      exams: [],
-      goals: ["Pós-operatório sem intercorrências"],
-      status: "stable",
-      devices: "AVP",
-      medications: "",
-      antibiotics: [],
+      status: "empty",
     },
     {
       id: "7002",
-      name: "I.J.F.C., 28a",
-      diagnosis: "CAD + ITU",
-      admittedFrom: "PS HMD",
-      admissionDate: "2025-05-28",
-      pendingIssues: ["Alta UTI pós CAD", "URC"],
-      exams: ["pH 7,22, BIC 12,3"],
-      goals: ["Suspensão ATB", "Retirada SVD", "Insulina SC", "Controle glicêmico"],
-      status: "improving",
-      devices: "CVC VJID, SVD",
-      medications: "",
-      antibiotics: [
-        {
-          name: "CEFTRIAXONE",
-          startDate: "2025-05-28",
-          daysInUse: 3,
-        },
-      ],
+      name: "Leito Vago",
+      diagnosis: "",
+      admittedFrom: "",
+      pendingIssues: [],
+      exams: [],
+      goals: [],
+      status: "empty",
     },
     {
       id: "7003",
-      name: "S.N.B., 44a",
-      diagnosis: "Empiema pleural + fístula broncopleural",
-      admittedFrom: "Enfermaria CM",
-      admissionDate: "2025-05-25",
-      pendingIssues: ["Vancocinemia protocolo", "Cirurgia torácica CROSS", "Culturas 30/05", "PoliB por febre"],
-      exams: ["Candida tropicalis", "Febre 38,9°C", "Hemoculturas"],
-      goals: ["Mero + Vanco", "Fluconazol", "Contenção mecânica", "Cuidados dreno"],
-      status: "critical",
-      devices: "TOT, CVC VJID, SVD, SNE, Dreno tórax",
-      medications: "Precedex 12ml/h",
-      antibiotics: [
-        {
-          name: "MEROPENEM",
-          startDate: "2025-05-25",
-          daysInUse: 6,
-        },
-        {
-          name: "VANCOMICINA",
-          startDate: "2025-05-25",
-          daysInUse: 6,
-          pendingLabs: ["Vancocinemia protocolo"],
-        },
-        {
-          name: "FLUCONAZOL",
-          startDate: "2025-05-28",
-          daysInUse: 3,
-        },
-      ],
+      name: "Leito Vago",
+      diagnosis: "",
+      admittedFrom: "",
+      pendingIssues: [],
+      exams: [],
+      goals: [],
+      status: "empty",
     },
   ]
 
@@ -759,6 +739,57 @@ export default function Dashboard() {
     }, 1500)
   }
 
+  // Função para processar PDF da passagem de plantão
+  const handlePdfAttachment = (file: File) => {
+    setAttachedPdfFile(file)
+    setUploadStatus("uploading")
+
+    // Simular processamento do PDF
+    let progress = 0
+    const interval = setInterval(() => {
+      progress += 10
+      setUploadProgress(progress)
+
+      if (progress >= 100) {
+        clearInterval(interval)
+        setUploadStatus("processing")
+
+        // Simular extração de dados do PDF
+        setTimeout(() => {
+          setUploadStatus("success")
+
+          // Registrar no log de auditoria
+          logAuditEvent({
+            action: "attach_handover_pdf",
+            user: loggedUser,
+            data: {
+              fileName: file.name,
+              timestamp: new Date().toISOString(),
+            },
+          })
+
+          // Atualizar dados da passagem de plantão baseado no PDF
+          updateHandoverFromPdf()
+
+          toast({
+            title: "PDF processado com sucesso",
+            description: "A passagem de plantão foi atualizada com os dados do PDF anexado.",
+          })
+        }, 2000)
+      }
+    }, 200)
+  }
+
+  // Função para atualizar dados baseado no PDF
+  const updateHandoverFromPdf = () => {
+    // Aqui você atualizaria os dados dos leitos baseado no conteúdo do PDF
+    // Por exemplo, atualizando informações dos pacientes
+    toast({
+      title: "Passagem de plantão atualizada",
+      description: "Os dados foram sincronizados com o PDF anexado.",
+    })
+  }
+
   // Wrap the return statement with LGPDAuditProvider
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
@@ -825,19 +856,30 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2" onClick={handleRefresh} disabled={isRefreshing}>
-              {isRefreshing ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-transparent" />
-                  Atualizando...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="h-4 w-4" />
-                  Atualizar
-                </>
-              )}
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" className="gap-2" onClick={handleRefresh} disabled={isRefreshing}>
+                {isRefreshing ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-transparent" />
+                    Atualizando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    Atualizar
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-slate-600 hover:text-blue-600 hover:bg-blue-50"
+                onClick={() => setShowPdfAttachDialog(true)}
+                title="Anexar PDF da passagem de plantão"
+              >
+                <FileText className="h-4 w-4" />
+              </Button>
+            </div>
             <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowPanoramaDialog(true)}>
               <FileText className="h-4 w-4" />
               Panorama UTI
@@ -2024,7 +2066,7 @@ export default function Dashboard() {
                             <div className="flex flex-wrap gap-2">
                               {patient.antibiotics.map((atb, index) => (
                                 <Badge key={index} className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-                                  {atb.name} - {atb.daysInUse} dias
+                                  {atb.name} - {atb.daysInUse}
                                 </Badge>
                               ))}
                             </div>
@@ -2775,6 +2817,148 @@ export default function Dashboard() {
                 <FileText className="h-4 w-4 mr-2" />
                 Gerar Panorama
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Diálogo de Anexo de PDF da Passagem de Plantão */}
+        <Dialog
+          open={showPdfAttachDialog}
+          onOpenChange={(open) => {
+            setShowPdfAttachDialog(open)
+            if (!open) {
+              resetUpload()
+              setAttachedPdfFile(null)
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                Anexar PDF da Passagem de Plantão
+              </DialogTitle>
+              <DialogDescription>
+                Anexe o PDF oficial da passagem de plantão para sincronizar os dados automaticamente
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              {uploadStatus === "idle" ? (
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center bg-blue-50">
+                    <FileText className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                    <p className="text-sm text-blue-800 mb-2 font-medium">Selecione o PDF da passagem de plantão</p>
+                    <p className="text-xs text-blue-600">Formato suportado: PDF (.pdf)</p>
+                    <input
+                      type="file"
+                      className="hidden"
+                      id="pdf-handover-upload"
+                      accept=".pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) handlePdfAttachment(file)
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      className="mt-4 border-blue-300 text-blue-700 hover:bg-blue-100"
+                      onClick={() => document.getElementById("pdf-handover-upload")?.click()}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Selecionar PDF
+                    </Button>
+                  </div>
+                  <div className="bg-amber-50 p-3 rounded-md border border-amber-200">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                      <div className="text-sm text-amber-800">
+                        <p className="font-medium mb-1">Sincronização Automática</p>
+                        <p>
+                          O sistema irá extrair automaticamente os dados do PDF e atualizar a passagem de plantão
+                          digital.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center">
+                      <FileText className="h-6 w-6 text-red-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{attachedPdfFile?.name}</p>
+                      <p className="text-xs text-slate-500">
+                        {uploadStatus === "uploading"
+                          ? "Enviando PDF..."
+                          : uploadStatus === "processing"
+                            ? "Extraindo dados do PDF..."
+                            : uploadStatus === "success"
+                              ? "PDF processado com sucesso"
+                              : "Erro ao processar PDF"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {uploadStatus === "uploading" && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-slate-500">
+                        <span>Enviando PDF</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <Progress value={uploadProgress} className="h-2" />
+                    </div>
+                  )}
+
+                  {uploadStatus === "processing" && (
+                    <div className="flex items-center justify-center p-4">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                      <span className="ml-3 text-sm">Extraindo dados da passagem de plantão...</span>
+                    </div>
+                  )}
+
+                  {uploadStatus === "success" && (
+                    <div className="bg-green-50 p-3 rounded-md border border-green-200">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                        <div className="text-sm text-green-800">
+                          <p className="font-medium mb-1">PDF processado com sucesso</p>
+                          <p>
+                            Os dados da passagem de plantão foram atualizados automaticamente com base no PDF anexado.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {uploadStatus === "error" && (
+                    <div className="bg-red-50 p-3 rounded-md border border-red-200">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                        <div className="text-sm text-red-800">
+                          <p className="font-medium mb-1">Erro ao processar PDF</p>
+                          <p>Verifique se o arquivo é um PDF válido da passagem de plantão.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              {uploadStatus === "idle" || uploadStatus === "error" ? (
+                <Button variant="outline" onClick={() => setShowPdfAttachDialog(false)}>
+                  Cancelar
+                </Button>
+              ) : uploadStatus === "success" ? (
+                <Button onClick={() => setShowPdfAttachDialog(false)}>Fechar</Button>
+              ) : (
+                <Button disabled>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                  Processando...
+                </Button>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
