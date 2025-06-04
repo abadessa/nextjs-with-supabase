@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +26,9 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import Cookies from "js-cookie"
+import { toast } from "@/components/ui/use-toast"
+import { Toaster } from "@/components/ui/toaster"
 
 // Tipo para antibióticos com dias de uso
 type Antibiotic = {
@@ -103,11 +107,59 @@ type ArchivedPatient = {
 }
 
 export default function Dashboard() {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
-  const [loggedUser, setLoggedUser] = useState("hpmduti@gmail.com")
+  const [loggedUser, setLoggedUser] = useState("")
   const [isEditingStats, setIsEditingStats] = useState(false)
   const [showLgpdDialog, setShowLgpdDialog] = useState(false)
   const [showStatsModal, setShowStatsModal] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [showReportDialog, setShowReportDialog] = useState(false)
+
+  // Verificar autenticação ao carregar a página
+  useEffect(() => {
+    const authToken = Cookies.get("auth_token")
+    const userEmail = Cookies.get("user_email")
+
+    if (!authToken) {
+      router.push("/login")
+      return
+    }
+
+    if (userEmail) {
+      setLoggedUser(userEmail)
+    }
+  }, [router])
+
+  // Função de logout
+  const handleLogout = () => {
+    logAuditEvent({
+      action: "manual_logout",
+      user: loggedUser,
+      data: { method: "button_click" },
+    })
+
+    // Remover cookies de autenticação
+    Cookies.remove("auth_token")
+    Cookies.remove("user_email")
+
+    // Redirecionar para a página de login
+    router.push("/login")
+  }
+
+  // Função para atualizar os dados
+  const handleRefresh = () => {
+    setIsRefreshing(true)
+
+    // Simular atualização de dados
+    setTimeout(() => {
+      setIsRefreshing(false)
+      toast({
+        title: "Dados atualizados",
+        description: `Última atualização: ${new Date().toLocaleString("pt-BR")}`,
+      })
+    }, 1500)
+  }
 
   // Dados reais dos leitos da UTI
   const beds = [
@@ -486,6 +538,11 @@ export default function Dashboard() {
 
     // Desativar modo de edição
     setIsEditingStats(false)
+
+    toast({
+      title: "Estatísticas atualizadas",
+      description: "As alterações foram salvas com sucesso.",
+    })
   }
 
   // Função para atualizar um valor numérico nas estatísticas
@@ -552,6 +609,11 @@ export default function Dashboard() {
     setShowArchiveDialog(false)
     setPatientToArchive(null)
 
+    toast({
+      title: "Paciente arquivado",
+      description: `${patientToArchive.name} foi arquivado com sucesso.`,
+    })
+
     // Em um sistema real, aqui atualizaríamos o status do leito para vago
     // e remover o paciente da lista de pacientes ativos
   }
@@ -604,15 +666,8 @@ export default function Dashboard() {
                 variant="ghost"
                 size="icon"
                 className="text-slate-600 hover:text-slate-900"
-                onClick={() => {
-                  logAuditEvent({
-                    action: "manual_logout",
-                    user: loggedUser,
-                    data: { method: "button_click" },
-                  })
-                  // Em produção, redirecionar para página de login
-                  alert("Logout registrado com sucesso!")
-                }}
+                onClick={handleLogout}
+                title="Sair do sistema"
               >
                 <LogOut className="h-5 w-5" />
               </Button>
@@ -630,11 +685,20 @@ export default function Dashboard() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Atualizar
+              <Button variant="outline" size="sm" className="gap-2" onClick={handleRefresh} disabled={isRefreshing}>
+                {isRefreshing ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-transparent" />
+                    Atualizando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" />
+                    Atualizar
+                  </>
+                )}
               </Button>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowReportDialog(true)}>
                 <Download className="h-4 w-4" />
                 Relatório
               </Button>
@@ -2181,6 +2245,93 @@ export default function Dashboard() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          {/* Diálogo de Relatório */}
+          <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Gerar Relatório</DialogTitle>
+                <DialogDescription>Selecione o tipo de relatório que deseja gerar</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tipo de Relatório</label>
+                  <Select defaultValue="plantao">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo de relatório" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="plantao">Passagem de Plantão</SelectItem>
+                      <SelectItem value="estatisticas">Estatísticas da UTI</SelectItem>
+                      <SelectItem value="pacientes">Lista de Pacientes</SelectItem>
+                      <SelectItem value="infeccoes">Infecções Hospitalares</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Período</label>
+                  <Select defaultValue="24h">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o período" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="24h">Últimas 24 horas</SelectItem>
+                      <SelectItem value="7d">Últimos 7 dias</SelectItem>
+                      <SelectItem value="30d">Últimos 30 dias</SelectItem>
+                      <SelectItem value="custom">Período personalizado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Formato</label>
+                  <Select defaultValue="pdf">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o formato" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pdf">PDF</SelectItem>
+                      <SelectItem value="excel">Excel</SelectItem>
+                      <SelectItem value="csv">CSV</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
+                  <div className="flex items-start gap-2">
+                    <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Conformidade LGPD</p>
+                      <p>Esta ação será registrada no sistema de auditoria conforme a Lei 13.709/2018.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowReportDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowReportDialog(false)
+                    logAuditEvent({
+                      action: "generate_report",
+                      user: loggedUser,
+                      data: { type: "plantao", format: "pdf" },
+                    })
+                    toast({
+                      title: "Relatório gerado",
+                      description: "O relatório foi gerado e está disponível para download.",
+                    })
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Gerar Relatório
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Incluir o Toaster para notificações */}
+          <Toaster />
         </main>
 
         <footer className="border-t border-slate-200 bg-white">

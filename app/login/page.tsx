@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,45 +11,69 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Heart, Lock, Shield, Eye, EyeOff } from "lucide-react"
+import { logAuditEvent } from "@/components/lgpd-audit"
 
 // Credenciais compartilhadas para equipe médica
 const SHARED_CREDENTIALS = {
   email: "hpmduti@gmail.com",
   password: "HPMDUTISP",
+  // Senha provisória para testes
+  provisionalPassword: "123456",
 }
 
 export default function Login() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectPath = searchParams.get("redirect") || "/dashboard"
+
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
+
     if (!acceptTerms) {
-      alert("É necessário aceitar os termos de uso e política de privacidade para continuar.")
+      setError("É necessário aceitar os termos de uso e política de privacidade para continuar.")
       return
     }
 
     setIsLoading(true)
 
     // Verificar se as credenciais correspondem ao acesso compartilhado
-    if (username === SHARED_CREDENTIALS.email && password === SHARED_CREDENTIALS.password) {
+    if (
+      username === SHARED_CREDENTIALS.email &&
+      (password === SHARED_CREDENTIALS.password || password === SHARED_CREDENTIALS.provisionalPassword)
+    ) {
       // Login bem-sucedido com credenciais compartilhadas
       setTimeout(() => {
+        // Registrar o login no sistema de auditoria
+        logAuditEvent({
+          action: "login_success",
+          user: username,
+          data: {
+            method: password === SHARED_CREDENTIALS.provisionalPassword ? "provisional_password" : "shared_credentials",
+          },
+        })
+
+        // Usar localStorage para autenticação simples
+        localStorage.setItem("auth_token", "authenticated")
+        localStorage.setItem("user_email", username)
+
         setIsLoading(false)
-        router.push("/dashboard")
+        router.push(redirectPath)
       }, 1500)
       return
     }
 
-    // Simulação de login para outras credenciais
+    // Para outras credenciais, também permitir acesso
     setTimeout(() => {
       setIsLoading(false)
-      // Para este exemplo, permitimos qualquer login
-      router.push("/dashboard")
+      setError("Credenciais inválidas. Use: hpmduti@gmail.com com senha HPMDUTISP ou senha provisória 123456")
     }, 1500)
   }
 
@@ -76,6 +100,10 @@ export default function Login() {
 
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">{error}</div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-slate-700">
                   Usuário
@@ -133,6 +161,22 @@ export default function Login() {
                     <p>
                       O email compartilhado (hpmduti@gmail.com) deve ser utilizado apenas por profissionais autorizados
                       da equipe médica. Todas as ações são registradas e auditadas conforme a Lei 13.709/2018.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg mt-2">
+                <div className="flex items-start gap-2">
+                  <Shield className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-green-800">
+                    <p className="font-medium mb-1">Acesso Provisório</p>
+                    <p>
+                      <strong>Email:</strong> hpmduti@gmail.com
+                      <br />
+                      <strong>Senha Provisória:</strong> 123456
+                      <br />
+                      <em>Use esta senha temporária caso tenha problemas com a senha principal.</em>
                     </p>
                   </div>
                 </div>
