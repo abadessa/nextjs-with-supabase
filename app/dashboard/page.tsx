@@ -24,6 +24,8 @@ import {
   BarChart2,
   Upload,
   FileUp,
+  Key,
+  FileText,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { BedStatus } from "@/components/bed-status"
@@ -45,7 +47,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Cookies from "js-cookie"
 import { toast } from "@/components/ui/use-toast"
-import { Toaster } from "@/components/ui/toaster"
 
 // Tipo para antibióticos com dias de uso
 type Antibiotic = {
@@ -133,12 +134,24 @@ export default function Dashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showReportDialog, setShowReportDialog] = useState(false)
 
-  // Adicionar estado para controlar o modal de upload
+  // Estados para controlar os modais de upload
   const [showUploadDialog, setShowUploadDialog] = useState(false)
+  const [showPatientUploadDialog, setShowPatientUploadDialog] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "processing" | "success" | "error">("idle")
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadedFileName, setUploadedFileName] = useState("")
   const [uploadedFileType, setUploadedFileType] = useState<"pdf" | "excel" | "word" | "">("")
+  const [selectedPatientForUpdate, setSelectedPatientForUpdate] = useState<any>(null)
+
+  // Estados para o relatório panorama
+  const [showPanoramaDialog, setShowPanoramaDialog] = useState(false)
+  const [panoramaData, setPanoramaData] = useState({
+    reportType: "geral",
+    period: "24h",
+    includeCharts: true,
+    includeDetails: true,
+    format: "pdf",
+  })
 
   // Verificar autenticação ao carregar a página
   useEffect(() => {
@@ -589,12 +602,10 @@ export default function Dashboard() {
     setUtiStats(newStats)
   }
 
-  // Função para arquivar um paciente
-  const handleArchivePatient = (patient: any) => {
-    setPatientToArchive(patient)
-    setArchiveNotes("")
-    setArchiveReason("discharge")
-    setShowArchiveDialog(true)
+  // Função para anexar arquivo ao paciente (nova funcionalidade)
+  const handleAttachFileToPatient = (patient: any) => {
+    setSelectedPatientForUpdate(patient)
+    setShowPatientUploadDialog(true)
   }
 
   // Função para confirmar o arquivamento
@@ -642,8 +653,8 @@ export default function Dashboard() {
     // e remover o paciente da lista de pacientes ativos
   }
 
-  // Adicionar função para simular o upload e processamento do arquivo
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Função para simular o upload e processamento do arquivo
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isPatientSpecific = false) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -685,11 +696,12 @@ export default function Dashboard() {
 
           // Registrar no log de auditoria
           logAuditEvent({
-            action: "import_data",
+            action: isPatientSpecific ? "update_patient_data" : "import_data",
             user: loggedUser,
             data: {
               fileName: file.name,
               fileType: fileType,
+              patientId: isPatientSpecific ? selectedPatientForUpdate?.id : undefined,
               timestamp: new Date().toISOString(),
             },
           })
@@ -697,9 +709,13 @@ export default function Dashboard() {
           // Simular atualização dos dados após 1 segundo
           setTimeout(() => {
             handleRefresh()
+            const message = isPatientSpecific
+              ? `Dados do paciente ${selectedPatientForUpdate?.name} atualizados com sucesso`
+              : `Os dados foram importados com sucesso de ${file.name}`
+
             toast({
               title: "Dados atualizados",
-              description: `Os dados foram importados com sucesso de ${file.name}`,
+              description: message,
             })
           }, 1000)
         }, 2000)
@@ -707,12 +723,41 @@ export default function Dashboard() {
     }, 100)
   }
 
-  // Adicionar função para reiniciar o estado de upload
+  // Função para reiniciar o estado de upload
   const resetUpload = () => {
     setUploadStatus("idle")
     setUploadProgress(0)
     setUploadedFileName("")
     setUploadedFileType("")
+  }
+
+  // Função para gerar panorama da UTI
+  const handleGeneratePanorama = () => {
+    logAuditEvent({
+      action: "generate_panorama",
+      user: loggedUser,
+      data: {
+        reportType: panoramaData.reportType,
+        period: panoramaData.period,
+        format: panoramaData.format,
+        timestamp: new Date().toISOString(),
+      },
+    })
+
+    setShowPanoramaDialog(false)
+
+    toast({
+      title: "Panorama gerado",
+      description: `Relatório ${panoramaData.reportType} em formato ${panoramaData.format.toUpperCase()} foi gerado com sucesso.`,
+    })
+
+    // Simular download do arquivo
+    setTimeout(() => {
+      toast({
+        title: "Download iniciado",
+        description: "O arquivo está sendo baixado automaticamente.",
+      })
+    }, 1500)
   }
 
   // Wrap the return statement with LGPDAuditProvider
@@ -795,9 +840,9 @@ export default function Dashboard() {
                   </>
                 )}
               </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowReportDialog(true)}>
-                <Download className="h-4 w-4" />
-                Relatório
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowPanoramaDialog(true)}>
+                <FileText className="h-4 w-4" />
+                Panorama UTI
               </Button>
               <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowUploadDialog(true)}>
                 <FileUp className="h-4 w-4" />
@@ -849,14 +894,14 @@ export default function Dashboard() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-2 right-2 h-7 w-7 text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+                    className="absolute top-2 right-2 h-7 w-7 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
                     onClick={(e) => {
                       e.preventDefault()
-                      handleArchivePatient(bed)
+                      handleAttachFileToPatient(bed)
                     }}
-                    title="Arquivar paciente"
+                    title="Anexar arquivo para atualizar dados do paciente"
                   >
-                    <Archive className="h-4 w-4" />
+                    <Key className="h-4 w-4" />
                   </Button>
                 )}
                 <Link href={`/patient/${bed.id}`}>
@@ -2347,91 +2392,7 @@ export default function Dashboard() {
             </DialogContent>
           </Dialog>
 
-          {/* Diálogo de Relatório */}
-          <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Gerar Relatório</DialogTitle>
-                <DialogDescription>Selecione o tipo de relatório que deseja gerar</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Tipo de Relatório</label>
-                  <Select defaultValue="plantao">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de relatório" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="plantao">Passagem de Plantão</SelectItem>
-                      <SelectItem value="estatisticas">Estatísticas da UTI</SelectItem>
-                      <SelectItem value="pacientes">Lista de Pacientes</SelectItem>
-                      <SelectItem value="infeccoes">Infecções Hospitalares</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Período</label>
-                  <Select defaultValue="24h">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o período" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="24h">Últimas 24 horas</SelectItem>
-                      <SelectItem value="7d">Últimos 7 dias</SelectItem>
-                      <SelectItem value="30d">Últimos 30 dias</SelectItem>
-                      <SelectItem value="custom">Período personalizado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Formato</label>
-                  <Select defaultValue="pdf">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o formato" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pdf">PDF</SelectItem>
-                      <SelectItem value="excel">Excel</SelectItem>
-                      <SelectItem value="csv">CSV</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
-                  <div className="flex items-start gap-2">
-                    <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div className="text-sm text-blue-800">
-                      <p className="font-medium mb-1">Conformidade LGPD</p>
-                      <p>Esta ação será registrada no sistema de auditoria conforme a Lei 13.709/2018.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowReportDialog(false)}>
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={() => {
-                    setShowReportDialog(false)
-                    logAuditEvent({
-                      action: "generate_report",
-                      user: loggedUser,
-                      data: { type: "plantao", format: "pdf" },
-                    })
-                    toast({
-                      title: "Relatório gerado",
-                      description: "O relatório foi gerado e está disponível para download.",
-                    })
-                  }}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Gerar Relatório
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* Diálogo de Upload de Arquivo */}
+          {/* Diálogo de Upload de Arquivo Geral */}
           <Dialog
             open={showUploadDialog}
             onOpenChange={(open) => {
@@ -2463,7 +2424,7 @@ export default function Dashboard() {
                         className="hidden"
                         id="file-upload"
                         accept=".pdf,.xlsx,.xls,.docx,.doc"
-                        onChange={handleFileUpload}
+                        onChange={(e) => handleFileUpload(e, false)}
                       />
                       <Button
                         variant="outline"
@@ -2573,25 +2534,174 @@ export default function Dashboard() {
             </DialogContent>
           </Dialog>
 
-          {/* Incluir o Toaster para notificações */}
-          <Toaster />
-        </main>
+          {/* Diálogo de Upload de Arquivo para Paciente Específico */}
+          <Dialog
+            open={showPatientUploadDialog}
+            onOpenChange={(open) => {
+              setShowPatientUploadDialog(open)
+              if (!open) {
+                resetUpload()
+                setSelectedPatientForUpdate(null)
+              }
+            }}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Key className="h-5 w-5 text-blue-600" />
+                  Atualizar Dados do Paciente
+                </DialogTitle>
+                <DialogDescription>
+                  Anexar arquivo para atualizar dados do paciente {selectedPatientForUpdate?.name} - Leito{" "}
+                  {selectedPatientForUpdate?.id}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                {uploadStatus === "idle" ? (
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center bg-blue-50">
+                      <Key className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                      <p className="text-sm text-blue-800 mb-2 font-medium">
+                        Anexar arquivo para {selectedPatientForUpdate?.name}
+                      </p>
+                      <p className="text-xs text-blue-600">
+                        Formatos suportados: PDF (exames, relatórios), Excel (dados laboratoriais)
+                      </p>
+                      <input
+                        type="file"
+                        className="hidden"
+                        id="patient-file-upload"
+                        accept=".pdf,.xlsx,.xls"
+                        onChange={(e) => handleFileUpload(e, true)}
+                      />
+                      <Button
+                        variant="outline"
+                        className="mt-4 border-blue-300 text-blue-700 hover:bg-blue-100"
+                        onClick={() => document.getElementById("patient-file-upload")?.click()}
+                      >
+                        <Key className="h-4 w-4 mr-2" />
+                        Selecionar Arquivo
+                      </Button>
+                    </div>
+                    <div className="bg-amber-50 p-3 rounded-md border border-amber-200">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                        <div className="text-sm text-amber-800">
+                          <p className="font-medium mb-1">Atualização de Dados do Paciente</p>
+                          <p>
+                            Este arquivo será processado para atualizar automaticamente as informações do paciente na
+                            passagem de plantão.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      {uploadedFileType === "pdf" ? (
+                        <div className="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center">
+                          <FileUp className="h-6 w-6 text-red-600" />
+                        </div>
+                      ) : (
+                        <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+                          <FileUp className="h-6 w-6 text-green-600" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{uploadedFileName}</p>
+                        <p className="text-xs text-slate-500">
+                          Paciente: {selectedPatientForUpdate?.name} - Leito {selectedPatientForUpdate?.id}
+                        </p>
+                      </div>
+                    </div>
 
-        <footer className="border-t border-slate-200 bg-white">
-          <div className="container py-4 px-4">
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <p className="text-xs text-slate-500">
-                &copy; {new Date().getFullYear()} Hospital Municipal e Maternidade Prof. Mario Degni. Sistema UTI
-                Digital v2.0
-              </p>
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <Heart className="h-3 w-3 text-blue-600" />
-                <span>Dados protegidos pela LGPD - Lei nº 13.709/2018</span>
+                    {uploadStatus === "uploading" && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs text-slate-500">
+                          <span>Enviando arquivo</span>
+                          <span>{uploadProgress}%</span>
+                        </div>
+                        <Progress value={uploadProgress} className="h-2" />
+                      </div>
+                    )}
+
+                    {uploadStatus === "processing" && (
+                      <div className="flex items-center justify-center p-4">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                        <span className="ml-3 text-sm">Processando dados do paciente...</span>
+                      </div>
+                    )}
+
+                    {uploadStatus === "success" && (
+                      <div className="bg-green-50 p-3 rounded-md border border-green-200">
+                        <div className="flex items-start gap-2">
+                          <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                          <div className="text-sm text-green-800">
+                            <p className="font-medium mb-1">Dados do paciente atualizados</p>
+                            <p>
+                              As informações de {selectedPatientForUpdate?.name} foram atualizadas com base no arquivo
+                              anexado.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {uploadStatus === "error" && (
+                      <div className="bg-red-50 p-3 rounded-md border border-red-200">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                          <div className="text-sm text-red-800">
+                            <p className="font-medium mb-1">Erro ao processar arquivo</p>
+                            <p>Verifique se o formato do arquivo é compatível e tente novamente.</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
-        </footer>
-      </div>
-    </LGPDAuditProvider>
-  )
-}
+              <DialogFooter>
+                {uploadStatus === "idle" || uploadStatus === "error" ? (
+                  <Button variant="outline" onClick={() => setShowPatientUploadDialog(false)}>
+                    Cancelar
+                  </Button>
+                ) : uploadStatus === "success" ? (
+                  <Button onClick={() => setShowPatientUploadDialog(false)}>Fechar</Button>
+                ) : (
+                  <Button disabled>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                    Aguarde...
+                  </Button>
+                )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Diálogo de Panorama da UTI */}
+          <Dialog open={showPanoramaDialog} onOpenChange={setShowPanoramaDialog}>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  Gerar Panorama da UTI
+                </DialogTitle>
+                <DialogDescription>
+                  Configure e gere um relatório panorâmico completo da UTI com indicadores e estatísticas
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tipo de Panorama</label>
+                  <Select
+                    value={panoramaData.reportType}
+                    onValueChange={(value) => setPanoramaData({ ...panoramaData, reportType: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo de panorama" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="geral">Panorama Geral da UTI</SelectItem>
+                      <SelectItem value="clinico">Panorama Clínico</SelectItem>
+                      <SelectItem\
