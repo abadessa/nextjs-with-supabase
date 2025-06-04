@@ -247,49 +247,78 @@ export default function Dashboard() {
       id: "5001",
       name: "LUCI APARECIDA MORALES DI BERT, 66a",
       diagnosis:
-        "Choque séptico (Foco A/E) / Hipovolêmico / Hematoma coxa E infectado / FAARV / DRC Dialítica / Mieloma Múltiplo em investigação",
+        "Choque séptico (Foco A/E - hematoma coxa E infectado) / Hipovolêmico melhorado / FAARV revertida / DRC Dialítica / Mieloma Múltiplo em investigação",
       admittedFrom: "UPA III LAPA (D:20/05) / DIH:21/05",
-      pendingIssues: ["Avaliação CIR. GERAL p/ drenagem hematoma", "Vancocinemia 04/06", "HD conforme nefrologia"],
-      exams: ["SAPS3: 76 | 67,5%", "USG partes moles: coleção 999,6ml", "Hb 8,3, Leuco 16620"],
-      goals: ["Vigilância infecciosa", "Manter dieta pastosa + enteral 20ml/hr", "Hemodiálise conforme programação"],
+      saps3: "SAPS3: 76 | 67,5%",
+      pendingIssues: [
+        "Avaliação CIR. GERAL p/ drenagem hematoma/coleção",
+        "Recoleta vancocinemia 04/06",
+        "Hemodiálise conforme programação nefro",
+      ],
+      exams: [
+        "USG partes moles: coleção 999,6ml hematoma coxa E",
+        "Hb 8,3, Ht 27,9, Leuco 16620, PLQ 83.000",
+        "KAPPA 95,29 / LAMBDA 130,58 / DHL:811 / CEA:10,7",
+        "HMC 21/05, 28/05: negativas",
+      ],
+      goals: [
+        "Vigilância infecciosa",
+        "Dieta pastosa + enteral 20ml/hr",
+        "Mantido ATB em curso (Vanco suspensa)",
+        "Vigilância hematoma MIE",
+      ],
       status: "critical",
-      devices: "PICC, AVC, permcath",
-      medications: "Vancomicina suspensa por vancocinemia elevada",
+      devices: "PICC, AVC, Permcath",
+      medications: "Gabapentina 300mg 12/12h, Amitriptilina 25mg/dia, Duloxetina 30mg/dia",
+      allergies: "Nimesulida",
       antibiotics: [
         {
           name: "VANCOMICINA",
           startDate: "2025-05-21",
           daysInUse: 14,
-          pendingLabs: ["Vancocinemia 04/06"],
+          status: "suspensa",
+          pendingLabs: ["Vancocinemia 04/06 - nível 27,83"],
         },
         {
           name: "MEROPENEM",
           startDate: "2025-05-24",
           daysInUse: 11,
+          duration: "10 dias",
         },
         {
           name: "FLUCONAZOL",
           startDate: "2025-05-27",
           daysInUse: 8,
+          duration: "7 dias",
         },
       ],
     },
     {
       id: "5002",
       name: "MARIA APARECIDA DA SILVA, 71a",
-      diagnosis: "DPOC exacerbado / PO TQT D:21/05 / Ins resp + RNC",
+      diagnosis: "DPOC exacerbado / PO TQT D:21/05 / Ins resp + RNC / Tabagista",
       admittedFrom: "UPA Rio Pequeno (08/05/2025)",
-      pendingIssues: ["CST D:29/05 gram negativo", "Clostridium 03/06", "Desmame VM"],
-      exams: ["TC crânio + tórax 12/05", "Anisocoria resolvida", "Hb 8,1, Leuco 2460"],
-      goals: ["Cuidados TQT", "BD com espaçador", "Desmame lento VM"],
+      pendingIssues: [
+        "CST D:29/05 gram negativo em identificação",
+        "Clostridium coletado 03/06",
+        "Desmame lento VM conforme tolerância",
+      ],
+      exams: [
+        "TC crânio + tórax 12/05: broncopatia inflamatória",
+        "Hb 8,1, Ht 26,2, Leuco 2460, PLQ 145.000",
+        "Gasometria: pH 7,44, pO2 55, SpO2 89%",
+        "TGO 41, TGP 173 (em queda), PCR 4",
+      ],
+      goals: ["Cuidados TQT D:21/05", "BD com espaçador", "Desmame lento e gradual VM", "Quetiapina 25mg 12/12h"],
       status: "stable",
-      devices: "TQT, SVD, PICC MSD, SNE",
-      medications: "Quetiapina 25mg 12/12h",
+      devices: "TQT, SVD, PICC MSD, SNE repassada 26/05",
+      medications: "Quetiapina 25mg 12/12h, Beclometasona 2jt 8/8h se broncoespasmo",
       antibiotics: [
         {
           name: "TAZOCIN",
           startDate: "2025-05-28",
           daysInUse: 7,
+          indication: "Subfebril + piora secreção TQT",
         },
       ],
     },
@@ -298,11 +327,20 @@ export default function Dashboard() {
       name: "MARIA SOCORRO MARQUES PEREIRA, 61a",
       diagnosis: "PO LE + COLECTOMIA DIREITA + ILEOTRANSVERSOANASTOMOSE + URETEROPLASTIA / Íleo paralítico",
       admittedFrom: "Centro Cirúrgico (DIH: 28/05/2025)",
-      pendingIssues: ["Anatomopatológico em andamento", "Seguimento CG", "NPT central"],
-      exams: ["Hb 10→7 intra-op: 2CH + 4plasma", "PCR 16,7", "Leuco 18450"],
-      goals: ["Jejum + NPT central", "SNG aberta + procinéticos", "Hidratação parcimoniosa"],
+      pendingIssues: ["Anatomopatológico 29/05 em andamento", "Seguimento conjunto CG", "NPT central iniciada 03/06"],
+      exams: [
+        "Hb 10→7 intra-op: transfundido 2CH + 4plasma",
+        "Hb 10,7, Ht 34,4, Leuco 18450, PLQ 368.000",
+        "PCR 16,7 (anterior 12,5), Ur 17,5, Cr 0,2",
+      ],
+      goals: [
+        "Jejum + NPT central",
+        "SNG aberta + procinéticos + simeticona",
+        "Meta BH zerado",
+        "Hidratação parcimoniosa",
+      ],
       status: "stable",
-      devices: "SVD 3 vias + AVP, PICC",
+      devices: "SVD 3 vias (trocada 30/05) + AVP + PICC (31/05)",
       medications: "Procinéticos, simeticona",
       antibiotics: [
         {
@@ -320,14 +358,30 @@ export default function Dashboard() {
     {
       id: "5004",
       name: "ISABEL CRISTINA MARTINS DA SILVA, 42a",
-      diagnosis: "PO drenagem abscesso parede / PO histerectomia + salpingectomia / LRA KDIGO III",
+      diagnosis:
+        "PO drenagem abscesso parede / PO histerectomia + salpingectomia / LRA KDIGO III / Íleo adinâmico em melhora",
       admittedFrom: "CCGO (DIH: 16/05/25)",
-      pendingIssues: ["Cultura secreção 29/05", "Avaliação nefrologia", "Não sacar SVD"],
-      exams: ["USG parede: coleção 17ml", "Cr 5,1, U 82", "Cultura gram negativo"],
-      goals: ["Analgesia otimizada", "Furosemida 8/8h", "Não deambular - risco evisceração"],
+      pendingIssues: [
+        "Cultura secreção lesão 29/05: gram negativo",
+        "Avaliação CG para progressão dieta",
+        "Furosemida 2amp 8/8h",
+      ],
+      exams: [
+        "USG parede abdominal 27/05: coleção 17ml à direita",
+        "Cr 5,1, U 82, K+ 3,6, HCO3- 22,1",
+        "URC 28/05: sem crescimento / HMC 27/05: negativa",
+      ],
+      goals: [
+        "Analgesia: gabapentina + amitriptilina + metadona 5mg 12/12h",
+        "Não sacar SVD (rafia serosa vesical)",
+        "Liberado água, chá e gelatina",
+        "Não deambular - risco evisceração",
+      ],
       status: "critical",
-      devices: "SVD + PICC MSD",
-      medications: "Ketamina 4mL/h, Metadona 5mg 12/12h",
+      devices: "SVD + PICC MSD (31/05)",
+      medications: "Ketamina 4mL/h, Metadona 5mg 12/12h, Gabapentina, Amitriptilina",
+      allergies: "Nefrolitíase, Esteatose hepática",
+      comorbidities: "Drogadição (crack), Etilismo, Tabagismo",
       antibiotics: [
         {
           name: "MEROPENEM",
@@ -339,14 +393,27 @@ export default function Dashboard() {
     {
       id: "6001",
       name: "JOÃO PITA MARINHO, 83a",
-      diagnosis: "DRC Agudizado / ICC Perfil B / DPOC exacerbado com infecção / Sd Consumptiva",
+      diagnosis:
+        "DRC Agudizado (Cr 3,4 - basal 2,5) / ICC Perfil B (Pro BNP 83559) / DPOC exacerbado com infecção / Sd Consumptiva A/E",
       admittedFrom: "UPA Rio Pequeno (D:28/05) / DI UTI D:02/06",
-      pendingIssues: ["ECO", "US rins", "Marcadores tumorais", "2ª amostra BARR"],
-      exams: ["Pro BNP 83559", "Cr 3,4 (basal 2,5)", "1ª e 2ª amostra TB negativa"],
-      goals: ["Reconciliação medicamentosa", "Furosemida 40mg/dia", "Acompanhamento nefrologia"],
+      pendingIssues: [
+        "ECO pendente",
+        "US rins e vias urinárias",
+        "Marcadores tumorais e função tireoidiana",
+        "2ª amostra BARR para suspender isolamento respiratório",
+      ],
+      exams: ["Pro BNP 83559", "1ª e 2ª amostra TB negativa", "Swab vigilância pendente"],
+      goals: [
+        "Reconciliação medicamentosa",
+        "Hidralazina 12,5mg 12/12h (reduzida)",
+        "Furosemida 40mg 1x/dia",
+        "Acompanhamento nefrologia",
+      ],
       status: "stable",
       devices: "AVP",
-      medications: "Hidralazina 12,5mg 12/12h",
+      medications: "Hidralazina 12,5mg 12/12h, Furosemida 40mg/dia",
+      allergies: "Dipirona",
+      comorbidities: "DM, DPOC, Cardiopata, IC (IAM prévio), Ex-tabagista, Ex-etilista",
       antibiotics: [
         {
           name: "CEFTRIAXONE",
@@ -363,14 +430,21 @@ export default function Dashboard() {
     {
       id: "6002",
       name: "GEORGINA VIEIRA DE ALMEIDA, 66a",
-      diagnosis: "Bacteremia A/E / Infecção de cateter / Dor abdominal A/E / IRC dialítica",
+      diagnosis: "Bacteremia A/E (Infecção de cateter?) / Dor abdominal A/E / IRC dialítica",
       admittedFrom: "PS Lapa (D:02/06) / DI UTI D:03/06",
-      pendingIssues: ["Laudo TC abdome", "HMC pareadas + cateter", "HD rotina"],
-      exams: ["Última HD sábado", "TC abdome pendente"],
-      goals: ["ATB empírico foco abdominal", "Analgesia otimizada", "Seguimento CG"],
+      pendingIssues: ["Laudo TC abdome", "HMC pareadas + cateter", "HD rotina (última HD sábado)"],
+      exams: ["TC abdome pendente", "Tratamento prévio: Ceftazidima + Vancomicina"],
+      goals: [
+        "ATB empírico foco abdominal",
+        "Analgesia otimizada S/N",
+        "Seguimento conjunto CG",
+        "Avaliação nefrologia para HD",
+      ],
       status: "critical",
       devices: "AVP, Permicath",
       medications: "Analgesia S/N",
+      comorbidities: "DM, IRC dialítica há 2 meses, HAS, Doença de Chagas, Sequela AVCI, Epilepsia",
+      surgicalHistory: "Colecistectomia, Laqueadura, Cesárias",
       antibiotics: [
         {
           name: "CEFTRIAXONE",
@@ -871,11 +945,11 @@ export default function Dashboard() {
                 )}
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                className="h-8 w-8 text-slate-600 hover:text-blue-600 hover:bg-blue-50"
+                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
                 onClick={() => setShowPdfAttachDialog(true)}
-                title="Anexar PDF da passagem de plantão"
+                title="Anexar PDF da passagem de plantão para atualização automática"
               >
                 <FileText className="h-4 w-4" />
               </Button>
@@ -1000,6 +1074,28 @@ export default function Dashboard() {
                               </Badge>
                             </div>
                           )}
+                        </div>
+                      )}
+
+                      {/* Informações Clínicas Adicionais */}
+                      {bed.saps3 && (
+                        <div>
+                          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">SAPS 3</p>
+                          <p className="text-xs text-slate-600">{bed.saps3}</p>
+                        </div>
+                      )}
+
+                      {bed.allergies && (
+                        <div>
+                          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Alergias</p>
+                          <p className="text-xs text-red-600 font-medium">{bed.allergies}</p>
+                        </div>
+                      )}
+
+                      {bed.comorbidities && (
+                        <div>
+                          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Comorbidades</p>
+                          <p className="text-xs text-slate-600">{bed.comorbidities}</p>
                         </div>
                       )}
 
