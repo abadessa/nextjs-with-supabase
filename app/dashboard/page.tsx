@@ -33,7 +33,6 @@ import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { TrendingUp, TrendingDown, AlertTriangle, Activity, Skull, RotateCcw, Droplets, Shield } from "lucide-react"
 import { logAuditEvent } from "@/components/lgpd-audit"
-import { LGPDAuditProvider } from "@/components/lgpd-audit-provider"
 import { Archive, FileArchive, AlertCircle, CheckCircle2 } from "lucide-react"
 import {
   Dialog,
@@ -762,7 +761,6 @@ export default function Dashboard() {
 
   // Wrap the return statement with LGPDAuditProvider
   return (
-    <LGPDAuditProvider user={loggedUser}>
       <div className="flex min-h-screen flex-col bg-slate-50">
         <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
           <div className="container flex h-16 items-center justify-between px-4">
@@ -2704,4 +2702,90 @@ export default function Dashboard() {
                     <SelectContent>
                       <SelectItem value="geral">Panorama Geral da UTI</SelectItem>
                       <SelectItem value="clinico">Panorama Clínico</SelectItem>
-                      <SelectItem\
+                      <SelectItem value="infeccoes">Panorama de Infecções</SelectItem>
+                      <SelectItem value="antibioticos">Panorama de Antibióticos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Período</label>
+                  <Select
+                    value={panoramaData.period}
+                    onValueChange={(value) => setPanoramaData({ ...panoramaData, period: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o período" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="24h">Últimas 24 horas</SelectItem>
+                      <SelectItem value="7d">Últimos 7 dias</SelectItem>
+                      <SelectItem value="30d">Últimos 30 dias</SelectItem>
+                      <SelectItem value="90d">Últimos 3 meses</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Formato</label>
+                  <Select
+                    value={panoramaData.format}
+                    onValueChange={(value) => setPanoramaData({ ...panoramaData, format: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o formato" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pdf">PDF Executivo</SelectItem>
+                      <SelectItem value="excel">Excel Detalhado</SelectItem>
+                      <SelectItem value="powerpoint">PowerPoint Apresentação</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Opções do Relatório</label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="includeCharts"
+                        checked={panoramaData.includeCharts}
+                        onChange={(e) => setPanoramaData({ ...panoramaData, includeCharts: e.target.checked })}
+                        className="rounded border-gray-300"
+                      />
+                      <label htmlFor="includeCharts" className="text-sm">Incluir gráficos e visualizações</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="includeDetails"
+                        checked={panoramaData.includeDetails}
+                        onChange={(e) => setPanoramaData({ ...panoramaData, includeDetails: e.target.checked })}
+                        className="rounded border-gray-300"
+                      />
+                      <label htmlFor="includeDetails" className="text-sm">Incluir detalhes por paciente</label>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
+                  <div className="flex items-start gap-2">
+                    <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Conformidade LGPD</p>
+                      <p>Esta ação será registrada no sistema de auditoria conforme a Lei 13.709/2018.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowPanoramaDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleGeneratePanorama}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Gerar Panorama
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+      </div>
+  )
+}
