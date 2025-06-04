@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -7,7 +9,22 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Heart, LogOut, User, Bell, Search, Download, RefreshCw, Pill, Edit, Save, X, BarChart2 } from "lucide-react"
+import {
+  Heart,
+  LogOut,
+  User,
+  Bell,
+  Search,
+  Download,
+  RefreshCw,
+  Pill,
+  Edit,
+  Save,
+  X,
+  BarChart2,
+  Upload,
+  FileUp,
+} from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { BedStatus } from "@/components/bed-status"
 import { Progress } from "@/components/ui/progress"
@@ -115,6 +132,13 @@ export default function Dashboard() {
   const [showStatsModal, setShowStatsModal] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showReportDialog, setShowReportDialog] = useState(false)
+
+  // Adicionar estado para controlar o modal de upload
+  const [showUploadDialog, setShowUploadDialog] = useState(false)
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "processing" | "success" | "error">("idle")
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadedFileName, setUploadedFileName] = useState("")
+  const [uploadedFileType, setUploadedFileType] = useState<"pdf" | "excel" | "word" | "">("")
 
   // Verificar autenticação ao carregar a página
   useEffect(() => {
@@ -618,6 +642,79 @@ export default function Dashboard() {
     // e remover o paciente da lista de pacientes ativos
   }
 
+  // Adicionar função para simular o upload e processamento do arquivo
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Verificar o tipo de arquivo
+    const fileType = file.name.toLowerCase().endsWith(".pdf")
+      ? "pdf"
+      : file.name.toLowerCase().endsWith(".xlsx") || file.name.toLowerCase().endsWith(".xls")
+        ? "excel"
+        : file.name.toLowerCase().endsWith(".docx") || file.name.toLowerCase().endsWith(".doc")
+          ? "word"
+          : ""
+
+    if (!fileType) {
+      toast({
+        title: "Formato não suportado",
+        description: "Por favor, envie arquivos PDF, Excel ou Word.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setUploadedFileName(file.name)
+    setUploadedFileType(fileType as any)
+    setUploadStatus("uploading")
+
+    // Simular progresso de upload
+    let progress = 0
+    const interval = setInterval(() => {
+      progress += 5
+      setUploadProgress(progress)
+
+      if (progress >= 100) {
+        clearInterval(interval)
+        setUploadStatus("processing")
+
+        // Simular processamento
+        setTimeout(() => {
+          setUploadStatus("success")
+
+          // Registrar no log de auditoria
+          logAuditEvent({
+            action: "import_data",
+            user: loggedUser,
+            data: {
+              fileName: file.name,
+              fileType: fileType,
+              timestamp: new Date().toISOString(),
+            },
+          })
+
+          // Simular atualização dos dados após 1 segundo
+          setTimeout(() => {
+            handleRefresh()
+            toast({
+              title: "Dados atualizados",
+              description: `Os dados foram importados com sucesso de ${file.name}`,
+            })
+          }, 1000)
+        }, 2000)
+      }
+    }, 100)
+  }
+
+  // Adicionar função para reiniciar o estado de upload
+  const resetUpload = () => {
+    setUploadStatus("idle")
+    setUploadProgress(0)
+    setUploadedFileName("")
+    setUploadedFileType("")
+  }
+
   // Wrap the return statement with LGPDAuditProvider
   return (
     <LGPDAuditProvider user={loggedUser}>
@@ -701,6 +798,10 @@ export default function Dashboard() {
               <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowReportDialog(true)}>
                 <Download className="h-4 w-4" />
                 Relatório
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowUploadDialog(true)}>
+                <FileUp className="h-4 w-4" />
+                Importar
               </Button>
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                 Novo Paciente
@@ -2326,6 +2427,148 @@ export default function Dashboard() {
                   <Download className="h-4 w-4 mr-2" />
                   Gerar Relatório
                 </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Diálogo de Upload de Arquivo */}
+          <Dialog
+            open={showUploadDialog}
+            onOpenChange={(open) => {
+              setShowUploadDialog(open)
+              if (!open) resetUpload()
+            }}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <FileUp className="h-5 w-5 text-blue-600" />
+                  Importar Dados
+                </DialogTitle>
+                <DialogDescription>
+                  Faça upload de um arquivo para atualizar automaticamente os dados da passagem de plantão
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                {uploadStatus === "idle" ? (
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center">
+                      <Upload className="h-8 w-8 text-slate-400 mx-auto mb-2" />
+                      <p className="text-sm text-slate-600 mb-2">Arraste um arquivo ou clique para selecionar</p>
+                      <p className="text-xs text-slate-500">
+                        Formatos suportados: PDF, Excel (.xlsx, .xls), Word (.docx, .doc)
+                      </p>
+                      <input
+                        type="file"
+                        className="hidden"
+                        id="file-upload"
+                        accept=".pdf,.xlsx,.xls,.docx,.doc"
+                        onChange={handleFileUpload}
+                      />
+                      <Button
+                        variant="outline"
+                        className="mt-4"
+                        onClick={() => document.getElementById("file-upload")?.click()}
+                      >
+                        Selecionar Arquivo
+                      </Button>
+                    </div>
+                    <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
+                      <div className="flex items-start gap-2">
+                        <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+                        <div className="text-sm text-blue-800">
+                          <p className="font-medium mb-1">Conformidade LGPD</p>
+                          <p>Esta ação será registrada no sistema de auditoria conforme a Lei 13.709/2018.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      {uploadedFileType === "pdf" ? (
+                        <div className="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center">
+                          <FileUp className="h-6 w-6 text-red-600" />
+                        </div>
+                      ) : uploadedFileType === "excel" ? (
+                        <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+                          <FileUp className="h-6 w-6 text-green-600" />
+                        </div>
+                      ) : (
+                        <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <FileUp className="h-6 w-6 text-blue-600" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{uploadedFileName}</p>
+                        <p className="text-xs text-slate-500">
+                          {uploadStatus === "uploading"
+                            ? "Enviando..."
+                            : uploadStatus === "processing"
+                              ? "Processando..."
+                              : uploadStatus === "success"
+                                ? "Processado com sucesso"
+                                : "Erro ao processar"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {uploadStatus === "uploading" && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs text-slate-500">
+                          <span>Enviando arquivo</span>
+                          <span>{uploadProgress}%</span>
+                        </div>
+                        <Progress value={uploadProgress} className="h-2" />
+                      </div>
+                    )}
+
+                    {uploadStatus === "processing" && (
+                      <div className="flex items-center justify-center p-4">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                        <span className="ml-3 text-sm">Processando dados do arquivo...</span>
+                      </div>
+                    )}
+
+                    {uploadStatus === "success" && (
+                      <div className="bg-green-50 p-3 rounded-md border border-green-200">
+                        <div className="flex items-start gap-2">
+                          <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                          <div className="text-sm text-green-800">
+                            <p className="font-medium mb-1">Arquivo processado com sucesso</p>
+                            <p>Os dados da passagem de plantão serão atualizados automaticamente.</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {uploadStatus === "error" && (
+                      <div className="bg-red-50 p-3 rounded-md border border-red-200">
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                          <div className="text-sm text-red-800">
+                            <p className="font-medium mb-1">Erro ao processar arquivo</p>
+                            <p>Verifique se o formato do arquivo é compatível e tente novamente.</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                {uploadStatus === "idle" || uploadStatus === "error" ? (
+                  <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
+                    Cancelar
+                  </Button>
+                ) : uploadStatus === "success" ? (
+                  <Button onClick={() => setShowUploadDialog(false)}>Fechar</Button>
+                ) : (
+                  <Button disabled>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                    Aguarde...
+                  </Button>
+                )}
               </DialogFooter>
             </DialogContent>
           </Dialog>
