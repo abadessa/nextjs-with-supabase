@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Heart, Lock, Shield, Eye, EyeOff } from "lucide-react"
-import { logAuditEvent } from "@/components/lgpd-audit"
 
 // Credenciais compartilhadas para equipe médica
 const SHARED_CREDENTIALS = {
@@ -21,22 +20,16 @@ const SHARED_CREDENTIALS = {
 
 export default function Login() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const redirectPath = searchParams.get("redirect") || "/dashboard"
-
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
-
     if (!acceptTerms) {
-      setError("É necessário aceitar os termos de uso e política de privacidade para continuar.")
+      alert("É necessário aceitar os termos de uso e política de privacidade para continuar.")
       return
     }
 
@@ -46,27 +39,17 @@ export default function Login() {
     if (username === SHARED_CREDENTIALS.email && password === SHARED_CREDENTIALS.password) {
       // Login bem-sucedido com credenciais compartilhadas
       setTimeout(() => {
-        // Registrar o login no sistema de auditoria
-        logAuditEvent({
-          action: "login_success",
-          user: username,
-          data: { method: "shared_credentials" },
-        })
-
-        // Usar localStorage para autenticação simples
-        localStorage.setItem("auth_token", "authenticated")
-        localStorage.setItem("user_email", username)
-
         setIsLoading(false)
-        router.push(redirectPath)
+        router.push("/dashboard")
       }, 1500)
       return
     }
 
-    // Para outras credenciais, também permitir acesso
+    // Simulação de login para outras credenciais
     setTimeout(() => {
       setIsLoading(false)
-      setError("Credenciais inválidas. Use: hpmduti@gmail.com / HPMDUTISP")
+      // Para este exemplo, permitimos qualquer login
+      router.push("/dashboard")
     }, 1500)
   }
 
@@ -93,10 +76,6 @@ export default function Login() {
 
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">{error}</div>
-              )}
-
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-slate-700">
                   Usuário
