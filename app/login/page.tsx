@@ -16,9 +16,9 @@ import { logAuditEvent } from "@/components/lgpd-audit"
 // Credenciais compartilhadas para equipe médica
 const SHARED_CREDENTIALS = {
   email: "hpmduti@gmail.com",
-  password: "HPMDUTISP",
-  // Senha provisória para testes
-  provisionalPassword: "123456",
+  password: "HPMDUTISP2025", // Nova senha atualizada
+  // Senhas alternativas para acesso
+  alternativePasswords: ["HPMDUTISP", "123456", "UTI2025"],
 }
 
 export default function Login() {
@@ -47,7 +47,7 @@ export default function Login() {
     // Verificar se as credenciais correspondem ao acesso compartilhado
     if (
       username === SHARED_CREDENTIALS.email &&
-      (password === SHARED_CREDENTIALS.password || password === SHARED_CREDENTIALS.provisionalPassword)
+      (password === SHARED_CREDENTIALS.password || SHARED_CREDENTIALS.alternativePasswords.includes(password))
     ) {
       // Login bem-sucedido com credenciais compartilhadas
       setTimeout(() => {
@@ -170,13 +170,15 @@ export default function Login() {
                 <div className="flex items-start gap-2">
                   <Shield className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-green-800">
-                    <p className="font-medium mb-1">Acesso Provisório</p>
+                    <p className="font-medium mb-1">Credenciais de Acesso</p>
                     <p>
                       <strong>Email:</strong> hpmduti@gmail.com
                       <br />
-                      <strong>Senha Provisória:</strong> 123456
+                      <strong>Senha Principal:</strong> HPMDUTISP2025
                       <br />
-                      <em>Use esta senha temporária caso tenha problemas com a senha principal.</em>
+                      <strong>Senhas Alternativas:</strong> HPMDUTISP, 123456, UTI2025
+                      <br />
+                      <em>Use qualquer uma das senhas disponíveis para acessar o sistema.</em>
                     </p>
                   </div>
                 </div>
